@@ -62,6 +62,11 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
 
+COPY modernize-hook-buffers.cjs /tmp/modernize-hook-buffers.cjs
+RUN node /tmp/modernize-hook-buffers.cjs \
+      /home/runner/k8s/index.js /home/runner/k8s-novolume/index.js \
+ && rm /tmp/modernize-hook-buffers.cjs
+
 COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
 
 # In CI we trust every repo we operate on. Disable git's "dubious ownership"
