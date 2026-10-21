@@ -21,6 +21,7 @@ data:
       enabled = true
       gc = true
       gckeepstorage = 25000000000
+      max-parallelism = 1
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,6 +38,7 @@ spec:
     metadata:
       labels: { app: buildkitd }
     spec:
+      priorityClassName: ci-background
       containers:
         - name: buildkitd
           image: mirror.gcr.io/moby/buildkit:v0.30.0
@@ -51,6 +53,7 @@ spec:
             - containerPort: 1234
           resources:
             requests: { cpu: "1", memory: 2Gi }
+            limits: { cpu: "1" }
           readinessProbe:
             tcpSocket: { port: 1234 }
             initialDelaySeconds: 2
