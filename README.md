@@ -4,7 +4,7 @@ Self-hosted GitHub Actions runner pool on a single host, powered by upstream [ac
 
 This repo provides:
 - Deploy scaffolding (`setup.sh`, `scripts/deploy-scale-set.sh`).
-- A reference generic runner image at `ghcr.io/jakwuh/actions-runner:latest` (Dockerfile in `runner-image/`). It's an upstream `actions-runner` + the minimum CLI toolkit (`gh`, `aws`, `jq`, `git`, `curl`, `unzip`, `zip`, `xz`, `rsync`, `gnupg`) — everything else (Node, Java, Flutter, Playwright, Android SDK, Python …) is installed on demand by workflow steps via `setup-*` actions, cached through `actions/cache`. Use this for every scale-set unless you have a reason not to.
+- A reference generic runner image at `ghcr.io/izi-x/actions-runner:latest` (Dockerfile in `runner-image/`). It's an upstream `actions-runner` + the minimum CLI toolkit (`gh`, `aws`, `jq`, `git`, `curl`, `unzip`, `zip`, `xz`, `rsync`, `gnupg`) — everything else (Node, Java, Flutter, Playwright, Android SDK, Python …) is installed on demand by workflow steps via `setup-*` actions, cached through `actions/cache`. Use this for every scale-set unless you have a reason not to.
 
 ## Architecture
 
@@ -19,7 +19,7 @@ One **scale-set** per `(GitHub org, runner image)` pair. The scale-set's name be
 ```bash
 # Fresh host (24+ vCPU, 16+ GB RAM recommended for production load):
 ssh root@<HOST>
-bash <(curl -fsSL https://raw.githubusercontent.com/jakwuh/build-server/main/setup.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/izi-x/build-server/main/setup.sh)
 ```
 
 `setup.sh` installs k3s + helm + the ARC controller into namespace `arc-systems`. Then deploy one scale-set per `(org, image)` you need.
@@ -54,7 +54,7 @@ APP_ID=3743839 INSTALL_ID=133143010 ORG=Miraj-OS NAME=self-hosted MIN=0 MAX=8 \
   NAMESPACE=arc-miraj RELEASE=miraj-self-hosted \
   CPU_REQUEST=500m MEM_REQUEST=2Gi DIND_CPU_REQUEST=250m DIND_MEM_REQUEST=1Gi \
   REGISTRY_MIRRORS=http://10.43.104.17:5000 \
-  IMAGE=ghcr.io/jakwuh/actions-runner:<sha> \
+  IMAGE=ghcr.io/izi-x/actions-runner:<sha> \
   PRIVATE_KEY_FILE=<app>.pem scripts/deploy-scale-set.sh
 ```
 
@@ -112,7 +112,7 @@ All izi-x pools run with `DIND_EXTERNALS=false` and `CI_HOST_CACHE=true`
 
 ```bash
 # First: kubectl apply -f manifests/runner-priority-classes.yaml manifests/limitrange-arc-izi-x.yaml
-COMMON="APP_ID=3743839 INSTALL_ID=133105803 ORG=izi-x NAMESPACE=arc-izi-x IMAGE=ghcr.io/jakwuh/actions-runner:<sha> PRIVATE_KEY_FILE=<app>.pem DIND_EXTERNALS=false CI_HOST_CACHE=true"
+COMMON="APP_ID=3743839 INSTALL_ID=133105803 ORG=izi-x NAMESPACE=arc-izi-x IMAGE=ghcr.io/izi-x/actions-runner:<sha> PRIVATE_KEY_FILE=<app>.pem DIND_EXTERNALS=false CI_HOST_CACHE=true"
 SMALL="DIND=false CPU_REQUEST=250m MEM_REQUEST=512Mi CPU_LIMIT=2 MEM_LIMIT=1Gi WORK_SIZE=4Gi"
 HEAVY="DIND=false CPU_REQUEST=2 MEM_REQUEST=4Gi CPU_LIMIT=4 MEM_LIMIT=6Gi WORK_SIZE=16Gi"
 K8S="DIND=false CONTAINER_MODE=kubernetes-novolume CPU_REQUEST=1 MEM_REQUEST=2Gi CPU_LIMIT=4 MEM_LIMIT=6Gi WORK_SIZE=8Gi"
@@ -161,7 +161,7 @@ serving nothing:
 | Tailnet membership + the `tag:buildsrv` tag | `tailscale up --authkey` with an auth key from 1Password; the tag is what the tailnet policy grants on |
 | Tailnet grants to reach the clusters | the tailnet ACL (`tag:buildsrv` → `tag:k8s-operator`, impersonating a group that RBAC binds inside the target cluster) |
 | `github-app` secret in each `arc-*` namespace | GitHub App **jakwuh-build-server** (app id, installation id, private key) — the same App the runner healthcheck mints tokens from |
-| `ghcr-pull` secret in each `arc-*` namespace | **Deliberately empty** (`{"auths":{}}`) since 2026-09-25. `ghcr.io/jakwuh/actions-runner` and the ARC charts are public and pull anonymously. A credential here is worse than none: once the token expires, ghcr answers `403 denied` instead of falling through to anonymous access, and kubelet does not retry anonymously either — the next new runner tag would sit in `ImagePullBackOff`. That is how the old token (issued 2026-05-18) was found dead in both namespaces. The same goes for a `ghcr.io` entry in root's `~/.docker/config.json`: it breaks `helm upgrade … oci://ghcr.io/actions/…`, so keep it absent. Only put a real `read:packages` token here if the runner image becomes private. The pool spec still references the secret, so keep it present, even when empty. |
+| `ghcr-pull` secret in each `arc-*` namespace | **Deliberately empty** (`{"auths":{}}`) since 2026-09-25. `ghcr.io/izi-x/actions-runner` and the ARC charts are public and pull anonymously. A credential here is worse than none: once the token expires, ghcr answers `403 denied` instead of falling through to anonymous access, and kubelet does not retry anonymously either — the next new runner tag would sit in `ImagePullBackOff`. That is how the old token (issued 2026-05-18) was found dead in both namespaces. The same goes for a `ghcr.io` entry in root's `~/.docker/config.json`: it breaks `helm upgrade … oci://ghcr.io/actions/…`, so keep it absent. Only put a real `read:packages` token here if the runner image becomes private. The pool spec still references the secret, so keep it present, even when empty. |
 | `/etc/arc-watchdog/{tg-token,config}` | alerts bot token + chat id; without them the watchdog heals silently |
 | Anything izi-x-specific | lives in `izi-x/izi-x-infra`, not here — e.g. `ops/pr-stand-janitor` |
 

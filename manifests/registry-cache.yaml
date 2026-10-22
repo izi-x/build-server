@@ -1,4 +1,4 @@
-# Pull-through registry cache for the ARC build-server (jakwuh/build-server 104.239.66.110).
+# Pull-through registry cache for the ARC build-server (izi-x/build-server 104.239.66.110).
 #
 # Why: every JIT runner pod gets a fresh dind sidecar → empty docker image cache →
 # `docker pull mirror.gcr.io/library/postgres:16` re-downloads on every test job
@@ -20,7 +20,7 @@
 # image churn becomes a problem we add a CronJob that calls the delete API
 # against tags older than N days.
 #
-# Manifest committed in jakwuh/build-server@main `manifests/registry-cache.yaml`.
+# Manifest committed in izi-x/build-server@main `manifests/registry-cache.yaml`.
 apiVersion: v1
 kind: Namespace
 metadata:

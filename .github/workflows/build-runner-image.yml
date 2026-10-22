@@ -18,11 +18,11 @@ permissions:
 
 jobs:
   build:
-    name: Build & push ghcr.io/jakwuh/actions-runner
+    name: Build & push ghcr.io/izi-x/actions-runner
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      IMAGE: ghcr.io/jakwuh/actions-runner
+      IMAGE: ghcr.io/izi-x/actions-runner
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -38,6 +38,8 @@ jobs:
           context: runner-image
           platforms: linux/amd64
           push: true
+          labels: |
+            org.opencontainers.image.source=https://github.com/izi-x/build-server
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}

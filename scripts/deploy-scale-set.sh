@@ -29,7 +29,7 @@ set -euo pipefail
 # No apostrophe in a :? message — inside ${VAR:?word} it opens a single quote
 # that never closes, and the whole script dies at parse time.
 : "${PRIVATE_KEY_FILE:?PRIVATE_KEY_FILE required — path to the GitHub App PEM file}"
-IMAGE="${IMAGE:-ghcr.io/jakwuh/actions-runner:latest}"
+IMAGE="${IMAGE:-ghcr.io/izi-x/actions-runner:latest}"
 MAX="${MAX:-8}"
 MIN="${MIN:-1}"
 # Per-container CPU/memory requests. These bound the scheduler so it never

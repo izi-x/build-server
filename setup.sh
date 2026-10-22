@@ -82,7 +82,7 @@ ufw status verbose | head -12
 echo "=== MSS clamp (flannel VXLAN MTU blackhole fix) ==="
 # k3s flannel runs at MTU 1450 while the CI build bridges default to 1500;
 # without this, bulk container egress blackholes (see mss-clamp.sh header).
-RAW=https://raw.githubusercontent.com/jakwuh/build-server/main
+RAW=https://raw.githubusercontent.com/izi-x/build-server/main
 install -d /opt/build-server
 curl -fsSL "$RAW/systemd/build-server-mss-clamp.sh" -o /opt/build-server/mss-clamp.sh
 chmod +x /opt/build-server/mss-clamp.sh
